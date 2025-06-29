@@ -22,7 +22,72 @@ public class MovementManager : MonoBehaviour
         // 보드에 있는지, 다른 piece에 의해 막히는지 등을 체크
         // 폰에 대한 예외 처리를 적용
         // --- TODO ---
-        
+        int dx = moveInfo.dirX;
+        int dy = moveInfo.dirY;
+        int dist = moveInfo.distance;
+
+        int startX = piece.MyPos.Item1;
+        int startY = piece.MyPos.Item2;
+
+        for (int i = 1; i <= dist; i++)
+        {
+            int nextX = startX + dx * i;
+            int nextY = startY + dy * i;
+            var nextPos = (nextX, nextY);
+
+            if (!Utils.IsInBoard(nextPos))
+                return false;
+
+            Piece targetPiece = gameManager.Pieces[nextX, nextY];
+
+            if (piece is Pawn)
+            {
+                bool isForward = dx == 0;
+                bool isDiagonal = dx != 0;
+
+                // 앞으로 가는 경우
+                if (isForward)
+                {
+                    // 도착 위치가 targetPos가 아니면 중간 경로이므로 반드시 비어 있어야 함
+                    if (targetPiece != null)
+                        return false;
+
+                    if (nextPos == targetPos)
+                        return true;
+                }
+
+                // 대각선 공격
+                else if (isDiagonal && i == 1)
+                {
+                    if (nextPos == targetPos)
+                    {
+                        // 대각선에는 상대 기물이 있어야만 가능
+                        if (targetPiece != null && targetPiece.PlayerDirection != piece.PlayerDirection)
+                            return true;
+                        else
+                            return false;
+                    }
+                }
+
+                // 나머지는 안됨 (예: 대각선 2칸 이동 같은 것)
+                continue;
+            }
+
+            // 일반 기물
+            if (nextPos == targetPos)
+            {
+                if (targetPiece == null)
+                    return true;
+                else
+                    return targetPiece.PlayerDirection != piece.PlayerDirection;
+            }
+
+            // 경로에 기물이 있으면 막힘
+            if (targetPiece != null)
+                return false;
+        }
+
+        return false;
         // ------
     }
 
@@ -84,7 +149,18 @@ public class MovementManager : MonoBehaviour
         // 왕이 지금 체크 상태인지를 리턴
         // gameManager.Pieces에서 Piece들을 참조하여 움직임을 확인
         // --- TODO ---
-        
+        for (int x = 0; x < Utils.FieldWidth; x++)
+        {
+            for (int y = 0; y < Utils.FieldHeight; y++)
+            {
+                var oppPiece = gameManager.Pieces[x, y];
+                if (oppPiece == null || oppPiece.PlayerDirection == playerDirection) continue;
+
+                if (IsValidMoveWithoutCheck(oppPiece, kingPos))
+                    return true;     // 하나라도 공격 가능하면 체크
+            }
+        }
+        return false;
         // ------
     }
 
@@ -97,7 +173,19 @@ public class MovementManager : MonoBehaviour
         // effectPrefab을 effectParent의 자식으로 생성하고 위치를 적절히 설정
         // currentEffects에 effectPrefab을 추가
         // --- TODO ---
-        
+        for (int x = 0; x < Utils.FieldWidth; x++)
+        {
+            for (int y = 0; y < Utils.FieldHeight; y++)
+            {
+                var pos = (x, y);
+                if (IsValidMove(piece, pos))
+                {
+                    Vector3 worldPos = new Vector3(x, 0.01f, y);   // 살짝 띄워서 보이게
+                    GameObject fx = Instantiate(effectPrefab, worldPos, Quaternion.identity, effectParent);
+                    currentEffects.Add(fx);
+                }
+            }
+        }
         // ------
     }
 
