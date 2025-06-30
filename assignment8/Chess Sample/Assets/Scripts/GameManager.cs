@@ -34,31 +34,29 @@ public class GameManager : MonoBehaviour
         InitializeBoard();
     }
 
-    void InitializeBoard()
+    void InitializeBoard() 
     {
         // 8x8로 타일들을 배치
         // TilePrefab을 TileParent의 자식으로 생성하고, 배치함
         // Tiles를 채움
         // --- TODO ---
-        for (int y = 0; y < Utils.FieldHeight; y++)
+        for (int x = 0; x < Utils.FieldWidth; x++)
         {
-            for (int x = 0; x < Utils.FieldWidth; x++)
+            for (int y = 0; y < Utils.FieldHeight; y++)
             {
-                Vector3 worldPos = new Vector3(x, 0f, y);          // 간단히 (x,0,z) 격자
-                GameObject tileObj = Instantiate(TilePrefab, worldPos, Quaternion.identity, TileParent);
-                tileObj.name = $"Tile_{x}_{y}";
-
+                GameObject tileObj = Instantiate(TilePrefab, TileParent);
                 Tile tile = tileObj.GetComponent<Tile>();
-                // 타일 스크립트가 좌표 초기화 함수를 갖고 있다면 호출
-                if (tile != null)
-                    tile.Set((x, y));
+
+                (int, int) pos = (x, y);
+                tile.Set(pos); // 위치와 색 설정
 
                 Tiles[x, y] = tile;
             }
         }
+
         // ------
 
-        PlacePieces(1);
+        PlacePieces(1); //타일 깐 이후 기물깔기
         PlacePieces(-1);
     }
 
@@ -92,35 +90,17 @@ public class GameManager : MonoBehaviour
         // Pieces를 채움
         // 배치한 Piece를 리턴
         // --- TODO ---
-        if (pieceType < 0 || pieceType >= PiecePrefabs.Length)
-        {
-            Debug.LogError($"PieceType {pieceType}가 유효하지 않음");
-            return null;
-        }
+        GameObject pieceObj = Instantiate(PiecePrefabs[pieceType], PieceParent);
+        Piece piece = pieceObj.GetComponent<Piece>();
 
-        GameObject prefab = PiecePrefabs[pieceType];
-        Vector3 worldPos = new Vector3(pos.Item1, 0f, pos.Item2);
-        GameObject obj = Instantiate(prefab, worldPos, Quaternion.identity, PieceParent);
-        obj.name = $"{prefab.name}_{pos.Item1}_{pos.Item2}";
-
-        Piece piece = obj.GetComponent<Piece>();
-        if (piece != null)
-        {
-            piece.MyPos = pos;
-            piece.PlayerDirection = direction;
-
-            // gameManager 참조 직접 대입 (protected일 경우 접근 보장)
-            var field = typeof(Piece).GetField("gameManager", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (field != null)
-                field.SetValue(piece, this);
-        }
-
+        piece.initialize(pos, direction); // 위치 및 방향 설정
         Pieces[pos.Item1, pos.Item2] = piece;
+
         return piece;
         // ------
     }
 
-    public bool IsValidMove(Piece piece, (int, int) targetPos)
+    public bool IsValidMove(Piece piece, (int, int) targetPos) //movementmanager를 이용해 이동가능한지 판단
     {
         return movementManager.IsValidMove(piece, targetPos);
     }
@@ -143,24 +123,26 @@ public class GameManager : MonoBehaviour
         // 해당 위치에 다른 Piece가 있다면 삭제
         // Piece를 이동시킴
         // --- TODO ---
-        (int x0, int y0) = piece.MyPos;
+        (int x0, int y0) = piece.MyPos; //기물의 좌표 가져옴
 
-        // 상대 말을 제거 (캡처)
+        // 움직일 위치에 기물이 있다면 제거
         Piece targetPiece = Pieces[targetPos.Item1, targetPos.Item2];
         if (targetPiece != null)
         {
             Destroy(targetPiece.gameObject);
         }
 
-        // 보드 상태 갱신
+        // 원래 있던 위치 비우기
         Pieces[x0, y0] = null;
-        Pieces[targetPos.Item1, targetPos.Item2] = piece;
+        Pieces[targetPos.Item1, targetPos.Item2] = piece; //새 위치에 기물 작성
 
-        // 실제 이동
-        piece.transform.position = new Vector3(targetPos.Item1, 0f, targetPos.Item2);
+        // 말 실제 이동
+        piece.transform.position = new Vector3(targetPos.Item1, targetPos.Item2, 0f);
         piece.MyPos = targetPos;
 
-        ChangeTurn();  // 턴 넘기기
+        // 효과 정리 및 턴 전환
+        ClearEffects();  // 남아있는 이동 표시 제거
+        ChangeTurn();    // 턴 교체 및 UI 반영
         // ------
     }
 

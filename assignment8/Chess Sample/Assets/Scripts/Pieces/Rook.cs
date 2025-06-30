@@ -10,10 +10,10 @@ public class Rook : Piece
         // --- TODO ---
         return new MoveInfo[]
         {
-        new MoveInfo(1, 0, 0),   // 오른쪽
-        new MoveInfo(-1, 0, 0),  // 왼쪽
-        new MoveInfo(0, 1, 0),   // 위쪽
-        new MoveInfo(0, -1, 0)   // 아래쪽
+        new MoveInfo(1, 0, 7),   // 오른쪽
+        new MoveInfo(-1, 0, 7),  // 왼쪽
+        new MoveInfo(0, 1, 7),   // 위쪽
+        new MoveInfo(0, -1, 7)   // 아래쪽
         };
         // ------
     }

@@ -10,7 +10,7 @@ public class Tile : MonoBehaviour
 
     private void Awake()
     {
-        MySpriteRenderer = GetComponent<SpriteRenderer>();
+        MySpriteRenderer = GetComponent<SpriteRenderer>(); //선언해둔 Spriterenderer할당
     }
 
     // 타일을 처음에 배치하는 함수
@@ -21,13 +21,13 @@ public class Tile : MonoBehaviour
         // --- TODO ---
         MyPos = targetPos;
 
-        int x = targetPos.Item1;
-        int y = targetPos.Item2;
+        int x = targetPos.Item1; //목표 좌표의 x 할당
+        int y = targetPos.Item2; //목표 좌표의 y 할당
 
-        transform.position = new Vector3(x, 0f, y);
+        transform.position = new Vector3(x, y, 0f); //할당된 위치로 transform상 이동
 
-        bool isDark = (x + y) % 2 == 1;
-        MySpriteRenderer.color = isDark ? Color.gray : tileColor;
+        bool isDark = (x + y) % 2 == 1; //블럭 색깔 따지기
+        MySpriteRenderer.color = isDark ? Color.gray : tileColor; //색깔 할당
         // ------ 
     }
     // ------

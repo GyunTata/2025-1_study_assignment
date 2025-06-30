@@ -9,10 +9,10 @@ public class Bishop : Piece
         // --- TODO ---
         return new MoveInfo[]
         {
-        new MoveInfo(1, 1, 0),    // ¢Ö
-        new MoveInfo(-1, 1, 0),   // ¢Ø
-        new MoveInfo(-1, -1, 0),  // ¢×
-        new MoveInfo(1, -1, 0)    // ¢Ù
+            new MoveInfo(1, 1, 7),
+            new MoveInfo(-1, 1, 7),
+            new MoveInfo(1, -1, 7),
+            new MoveInfo(-1, -1, 7),
         };
         // ------
     }
